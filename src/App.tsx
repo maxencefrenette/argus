@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import './App.css';
+import { useQuery } from '@tanstack/react-query';
+
+interface Repository {
+    path: string;
+    name: string;
+}
 
 function App() {
     const [greetMsg, setGreetMsg] = useState('');
@@ -11,20 +17,24 @@ function App() {
         setGreetMsg(await invoke('greet', { name }));
     }
 
-    const repos = [
-        {
-            path: '/Users/maxence/Repos/srs-benchmark',
-            name: 'srs-benchmark',
-        },
-        {
-            path: '/Users/maxence/Repos/heisenbase',
-            name: 'heisenbase',
-        },
-    ];
+    const { data, isPending, error } = useQuery<Repository[]>({
+        queryKey: ['repos'],
+        queryFn: () => invoke('get_repos'),
+    });
+
+    if (isPending) {
+        return <span>Loading...</span>;
+    }
+
+    if (error) {
+        return <span>Error: {(error as Error).message}</span>;
+    }
+
+    console.log(data);
 
     return (
         <main className="container">
-            {repos.map((repo) => (
+            {data.map((repo) => (
                 <div key={repo.path}>
                     <h2>{repo.name}</h2>
                 </div>
