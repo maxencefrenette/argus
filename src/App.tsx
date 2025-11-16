@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { confirm } from "@tauri-apps/plugin-dialog";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +10,7 @@ import {
   ItemGroup,
   ItemSeparator,
 } from "@/components/ui/item";
-import { FolderCodeIcon } from "lucide-react";
+import { FolderCodeIcon, Trash2Icon } from "lucide-react";
 import { NewWorkTreeForm } from "@/components/new-worktree-form";
 
 interface Repository {
@@ -35,6 +36,17 @@ function App() {
 
   if (error) {
     return <span>Error: {(error as Error).message}</span>;
+  }
+
+  async function deleteWorktree(repoPath: string, worktreeName: string) {
+    const confirmation = await confirm(
+      "Are you sure you want to delete this worktree?",
+      { title: worktreeName, kind: "warning" }
+    );
+    if (!confirmation) {
+      return;
+    }
+    await invoke("delete_worktree", { repoPath, worktreeName });
   }
 
   return (
@@ -70,6 +82,14 @@ function App() {
                     onClick={() => invoke("open_in_vscode", { path: wt.path })}
                   >
                     <FolderCodeIcon />
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="rounded-full"
+                    onClick={() => deleteWorktree(repo.path, wt.name)}
+                  >
+                    <Trash2Icon />
                   </Button>
                 </ItemActions>
               </Item>

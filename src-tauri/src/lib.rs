@@ -1,7 +1,8 @@
 mod config;
 
 use config::Config;
-use git2::Repository;
+use git2::{Repository, WorktreePruneOptions};
+use std::fs;
 use std::path::Path;
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_opener::OpenerExt;
@@ -59,9 +60,7 @@ fn get_repos() -> Vec<RepositoryDto> {
 
 #[tauri::command]
 fn add_worktree(repo_path: String, worktree_name: String) {
-    let repo = Repository::open(repo_path)
-        .map_err(|e| e.to_string())
-        .unwrap();
+    let repo = Repository::open(repo_path).unwrap();
 
     // repo.branch(
     //     &worktree_name,
@@ -78,8 +77,25 @@ fn add_worktree(repo_path: String, worktree_name: String) {
         .unwrap()
         .to_str()
         .unwrap();
-    let worktree_path = repo_parent.join(format!("{}.worktrees", repo_name));
+    let worktree_path = repo_parent
+        .join(format!("{}.worktrees", repo_name))
+        .join(&worktree_name);
     repo.worktree(&worktree_name, &worktree_path, None).unwrap();
+}
+
+#[tauri::command]
+fn delete_worktree(repo_path: String, worktree_name: String) {
+    let repo = Repository::open(repo_path).unwrap();
+    let worktree = repo.find_worktree(&worktree_name).unwrap();
+
+    // Remove the worktree on disk
+    fs::remove_dir_all(worktree.path()).unwrap();
+
+    // Prune the worktree from the repository
+    repo.find_worktree(&worktree_name)
+        .unwrap()
+        .prune(None)
+        .unwrap();
 }
 
 #[tauri::command]
@@ -92,10 +108,12 @@ fn open_in_vscode<R: Runtime>(app: AppHandle<R>, path: String) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_repos,
             add_worktree,
+            delete_worktree,
             open_in_vscode
         ])
         .run(tauri::generate_context!())
