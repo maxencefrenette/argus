@@ -9,7 +9,8 @@ import {
   ItemGroup,
   ItemSeparator,
 } from "@/components/ui/item";
-import { FolderCodeIcon, PlusIcon } from "lucide-react";
+import { FolderCodeIcon } from "lucide-react";
+import { NewWorkTreeForm } from "@/components/new-worktree-form";
 
 interface Repository {
   path: string;
@@ -73,6 +74,9 @@ function App() {
                 </ItemActions>
               </Item>
             ))}
+            <Item size="sm">
+              <NewWorkTreeForm repoPath={repo.path} />
+            </Item>
             {index !== data.length - 1 && <ItemSeparator />}
           </>
         ))}

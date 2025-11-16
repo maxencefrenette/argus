@@ -58,6 +58,31 @@ fn get_repos() -> Vec<RepositoryDto> {
 }
 
 #[tauri::command]
+fn add_worktree(repo_path: String, worktree_name: String) {
+    let repo = Repository::open(repo_path)
+        .map_err(|e| e.to_string())
+        .unwrap();
+
+    // repo.branch(
+    //     &worktree_name,
+    //     &repo.head().unwrap().peel_to_commit().unwrap(),
+    //     false,
+    // )
+    // .unwrap();
+
+    let repo_parent = repo.workdir().unwrap().parent().unwrap();
+    let repo_name = repo
+        .workdir()
+        .unwrap()
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap();
+    let worktree_path = repo_parent.join(format!("{}.worktrees", repo_name));
+    repo.worktree(&worktree_name, &worktree_path, None).unwrap();
+}
+
+#[tauri::command]
 fn open_in_vscode<R: Runtime>(app: AppHandle<R>, path: String) {
     app.opener()
         .open_path(path, Some("/Applications/Visual Studio Code.app"))
@@ -68,7 +93,11 @@ fn open_in_vscode<R: Runtime>(app: AppHandle<R>, path: String) {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![get_repos, open_in_vscode])
+        .invoke_handler(tauri::generate_handler![
+            get_repos,
+            add_worktree,
+            open_in_vscode
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
