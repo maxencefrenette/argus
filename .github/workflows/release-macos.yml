@@ -1,0 +1,59 @@
+name: release-macos
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-macos
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    runs-on: macos-14
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache Rust builds
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Build and release (macOS only)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: src-tauri
+          tauriScript: pnpm tauri
+          args: --target universal-apple-darwin
+          tagName: ${{ github.ref_name }}
+          releaseName: Argus ${{ github.ref_name }}
+          generateReleaseNotes: true
+          releaseDraft: false
+          prerelease: ${{ contains(github.ref_name, '-rc') }}
