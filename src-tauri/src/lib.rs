@@ -1,4 +1,8 @@
+mod config;
+
+use config::Config;
 use git2::Repository;
+use std::path::Path;
 use tauri::{AppHandle, Runtime};
 use tauri_plugin_opener::OpenerExt;
 
@@ -15,7 +19,7 @@ struct WorktreeDto {
     name: String,
 }
 
-fn get_worktrees_for_repo(repo_path: &str) -> Vec<WorktreeDto> {
+fn get_worktrees_for_repo(repo_path: &Path) -> Vec<WorktreeDto> {
     let repo = Repository::open(repo_path).unwrap();
     let worktrees = repo.worktrees().unwrap();
 
@@ -34,18 +38,23 @@ fn get_worktrees_for_repo(repo_path: &str) -> Vec<WorktreeDto> {
 
 #[tauri::command]
 fn get_repos() -> Vec<RepositoryDto> {
-    vec![
-        RepositoryDto {
-            path: String::from("/Users/maxence/Repos/srs-benchmark"),
-            name: String::from("srs-benchmark"),
-            worktrees: get_worktrees_for_repo("/Users/maxence/Repos/srs-benchmark"),
-        },
-        RepositoryDto {
-            path: String::from("/Users/maxence/Repos/heisenbase"),
-            name: String::from("heisenbase"),
-            worktrees: get_worktrees_for_repo("/Users/maxence/Repos/heisenbase"),
-        },
-    ]
+    let config = Config::load();
+
+    config
+        .repositories
+        .into_iter()
+        .map(|repo_config| RepositoryDto {
+            path: repo_config.path.to_str().unwrap().to_string(),
+            name: repo_config
+                .path
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string(),
+            worktrees: get_worktrees_for_repo(&repo_config.path),
+        })
+        .collect()
 }
 
 #[tauri::command]
