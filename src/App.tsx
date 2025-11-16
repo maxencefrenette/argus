@@ -9,7 +9,7 @@ import {
   ItemGroup,
   ItemSeparator,
 } from "@/components/ui/item";
-import { FolderCodeIcon } from "lucide-react";
+import { FolderCodeIcon, PlusIcon } from "lucide-react";
 
 interface Repository {
   path: string;
@@ -41,8 +41,8 @@ function App() {
       <ItemGroup>
         {data.map((repo, index) => (
           <>
-            <Item key={repo.path} size="sm">
-              <ItemContent className="gap-1">
+            <Item key={repo.path} size="sm" className="py-2">
+              <ItemContent>
                 <ItemTitle>{repo.name}</ItemTitle>
               </ItemContent>
               <ItemActions>
@@ -57,8 +57,8 @@ function App() {
               </ItemActions>
             </Item>
             {repo.worktrees.map((wt) => (
-              <Item key={wt.path} size="sm" className="ml-4">
-                <ItemContent className="gap-1">
+              <Item key={wt.path} size="sm" className="ml-4 py-2">
+                <ItemContent>
                   <ItemTitle>{wt.name}</ItemTitle>
                 </ItemContent>
                 <ItemActions>
