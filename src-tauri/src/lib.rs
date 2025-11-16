@@ -1,4 +1,6 @@
 use git2::Repository;
+use tauri::{AppHandle, Runtime};
+use tauri_plugin_opener::OpenerExt;
 
 #[derive(serde::Serialize)]
 struct RepositoryDto {
@@ -46,11 +48,18 @@ fn get_repos() -> Vec<RepositoryDto> {
     ]
 }
 
+#[tauri::command]
+fn open_in_vscode<R: Runtime>(app: AppHandle<R>, path: String) {
+    app.opener()
+        .open_path(path, Some("/Applications/Visual Studio Code.app"))
+        .unwrap();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![get_repos])
+        .invoke_handler(tauri::generate_handler![get_repos, open_in_vscode])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
