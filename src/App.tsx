@@ -45,7 +45,7 @@ function App() {
       <ItemGroup>
         {data.map((repo, index) => (
           <>
-            <Item key={repo.path}>
+            <Item key={repo.path} size="sm">
               <ItemContent className="gap-1">
                 <ItemTitle>{repo.name}</ItemTitle>
               </ItemContent>
@@ -61,7 +61,7 @@ function App() {
               </ItemActions>
             </Item>
             {repo.worktrees.map((wt) => (
-              <Item key={wt.path}>
+              <Item key={wt.path} size="sm" className="ml-4">
                 <ItemContent className="gap-1">
                   <ItemTitle>{wt.name}</ItemTitle>
                 </ItemContent>
