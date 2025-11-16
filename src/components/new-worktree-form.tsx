@@ -3,12 +3,14 @@ import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { Input } from "./ui/input";
 import { invoke } from "@tauri-apps/api/core";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface NewWorkTreeFormProps {
   repoPath: string;
 }
 
 export function NewWorkTreeForm(props: NewWorkTreeFormProps) {
+  const queryClient = useQueryClient();
   const [isEnteringNewWorktree, setIsEnteringNewWorktree] = useState(false);
   const [workTreeName, setWorkTreeName] = useState("");
 
@@ -19,6 +21,7 @@ export function NewWorkTreeForm(props: NewWorkTreeFormProps) {
     });
     setIsEnteringNewWorktree(false);
     setWorkTreeName("");
+    await queryClient.invalidateQueries({ queryKey: ["repos"] });
   }
 
   if (!isEnteringNewWorktree) {

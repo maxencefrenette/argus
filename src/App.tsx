@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { confirm } from "@tauri-apps/plugin-dialog";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Item,
@@ -25,6 +25,7 @@ interface Worktree {
 }
 
 function App() {
+  const queryClient = useQueryClient();
   const { data, isPending, error } = useQuery<Repository[]>({
     queryKey: ["repos"],
     queryFn: () => invoke("get_repos"),
@@ -47,6 +48,7 @@ function App() {
       return;
     }
     await invoke("delete_worktree", { repoPath, worktreeName });
+    queryClient.invalidateQueries({ queryKey: ["repos"] });
   }
 
   return (
