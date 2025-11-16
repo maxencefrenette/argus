@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-release:
+  macos-arm64:
     runs-on: macos-14
     permissions:
       contents: write
@@ -34,24 +34,24 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Setup Rust
+      - name: Setup Rust (arm64 target)
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-darwin,x86_64-apple-darwin
+          targets: aarch64-apple-darwin
 
       - name: Cache Rust builds
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Build and release (macOS only)
+      - name: Build and release (arm64)
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: src-tauri
           tauriScript: pnpm tauri
-          args: --target universal-apple-darwin
+          args: --target aarch64-apple-darwin
           tagName: ${{ github.ref_name }}
           releaseName: Argus ${{ github.ref_name }}
           generateReleaseNotes: true
