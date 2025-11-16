@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect x="32" y="32" width="448" height="448" rx="112" fill="#020617"/>
+
+  <!-- Eye outline (Argus / “watching your worktrees”) -->
+  <ellipse cx="256" cy="256" rx="170" ry="120"
+           fill="none" stroke="#E5E7EB" stroke-width="18"/>
+
+  <!-- Git-style branch (worktree graph) -->
+  <path d="M176 320 L256 192 L336 320"
+        fill="none" stroke="#22C55E" stroke-width="20"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Nodes on the branch -->
+  <circle cx="176" cy="320" r="18" fill="#22C55E"/>
+  <circle cx="256" cy="192" r="18" fill="#22C55E"/>
+  <circle cx="336" cy="320" r="18" fill="#22C55E"/>
+
+  <!-- Pupil, integrated with branch -->
+  <circle cx="256" cy="256" r="40"
+          fill="#020617" stroke="#22C55E" stroke-width="12"/>
+
+  <!-- Small highlight on pupil -->
+  <circle cx="242" cy="242" r="10" fill="#E5E7EB" opacity="0.8"/>
+</svg>
