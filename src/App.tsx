@@ -1,6 +1,19 @@
 import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
 import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemFooter,
+  ItemHeader,
+  ItemMedia,
+  ItemTitle,
+  ItemGroup,
+  ItemSeparator,
+} from "@/components/ui/item";
+import { FolderCodeIcon } from "lucide-react";
 
 interface Repository {
   path: string;
@@ -28,29 +41,46 @@ function App() {
   }
 
   return (
-    <main className="container">
-      {data.map((repo) => (
-        <div key={repo.path}>
-          <h2>
-            {repo.name}{" "}
-            <button
-              onClick={() => invoke("open_in_vscode", { path: repo.path })}
-            >
-              Open
-            </button>
-          </h2>
-          {repo.worktrees.map((wt) => (
-            <div key={wt.path} style={{ marginLeft: "20px" }}>
-              <span>{wt.name}</span>
-              <button
-                onClick={() => invoke("open_in_vscode", { path: wt.path })}
-              >
-                Open
-              </button>
-            </div>
-          ))}
-        </div>
-      ))}
+    <main className="dark bg-background text-foreground h-screen">
+      <ItemGroup>
+        {data.map((repo, index) => (
+          <>
+            <Item key={repo.path}>
+              <ItemContent className="gap-1">
+                <ItemTitle>{repo.name}</ItemTitle>
+              </ItemContent>
+              <ItemActions>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full"
+                  onClick={() => invoke("open_in_vscode", { path: repo.path })}
+                >
+                  <FolderCodeIcon />
+                </Button>
+              </ItemActions>
+            </Item>
+            {repo.worktrees.map((wt) => (
+              <Item key={wt.path}>
+                <ItemContent className="gap-1">
+                  <ItemTitle>{wt.name}</ItemTitle>
+                </ItemContent>
+                <ItemActions>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full"
+                    onClick={() => invoke("open_in_vscode", { path: wt.path })}
+                  >
+                    <FolderCodeIcon />
+                  </Button>
+                </ItemActions>
+              </Item>
+            ))}
+            {index !== data.length - 1 && <ItemSeparator />}
+          </>
+        ))}
+      </ItemGroup>
     </main>
   );
 }
