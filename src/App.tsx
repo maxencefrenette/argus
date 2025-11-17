@@ -52,7 +52,7 @@ function App() {
   }
 
   return (
-    <main className="dark bg-background text-foreground h-screen">
+    <main className="dark bg-background text-foreground min-h-screen">
       <ItemGroup>
         {data.map((repo, index) => (
           <>
