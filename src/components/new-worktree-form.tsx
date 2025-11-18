@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 interface NewWorkTreeFormProps {
   repoPath: string;
+  onError: (error: string) => void;
 }
 
 export function NewWorkTreeForm(props: NewWorkTreeFormProps) {
@@ -15,13 +16,17 @@ export function NewWorkTreeForm(props: NewWorkTreeFormProps) {
   const [workTreeName, setWorkTreeName] = useState("");
 
   async function addWorktree() {
-    await invoke("add_worktree", {
-      repoPath: props.repoPath,
-      worktreeName: workTreeName,
-    });
-    setIsEnteringNewWorktree(false);
-    setWorkTreeName("");
-    await queryClient.invalidateQueries({ queryKey: ["repos"] });
+    try {
+      await invoke("add_worktree", {
+        repoPath: props.repoPath,
+        worktreeName: workTreeName,
+      });
+      setIsEnteringNewWorktree(false);
+      setWorkTreeName("");
+      await queryClient.invalidateQueries({ queryKey: ["repos"] });
+    } catch (e) {
+      props.onError(String(e));
+    }
   }
 
   if (!isEnteringNewWorktree) {

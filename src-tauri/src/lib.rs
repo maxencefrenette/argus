@@ -20,89 +20,103 @@ struct WorktreeDto {
     name: String,
 }
 
-fn get_worktrees_for_repo(repo_path: &Path) -> Vec<WorktreeDto> {
-    let repo = Repository::open(repo_path).unwrap();
-    let worktrees = repo.worktrees().unwrap();
+fn get_worktrees_for_repo(repo_path: &Path) -> Result<Vec<WorktreeDto>, String> {
+    let repo = Repository::open(repo_path).map_err(|e| e.to_string())?;
+    let worktrees = repo.worktrees().map_err(|e| e.to_string())?;
 
     worktrees
         .into_iter()
         .filter_map(|wt_name| wt_name)
         .map(|wt_name| {
-            let wt = repo.find_worktree(&wt_name).unwrap();
-            WorktreeDto {
-                path: wt.path().to_str().unwrap().to_string(),
+            let wt = repo
+                .find_worktree(&wt_name)
+                .map_err(|e| format!("Failed to find worktree {}: {}", wt_name, e))?;
+            Ok(WorktreeDto {
+                path: wt
+                    .path()
+                    .to_str()
+                    .ok_or_else(|| "Invalid path".to_string())?
+                    .to_string(),
                 name: wt_name.to_string(),
-            }
+            })
         })
         .collect()
 }
 
 #[tauri::command]
-fn get_repos() -> Vec<RepositoryDto> {
+fn get_repos() -> Result<Vec<RepositoryDto>, String> {
     let config = Config::load();
-
     config
         .repositories
         .into_iter()
-        .map(|repo_config| RepositoryDto {
-            path: repo_config.path.to_str().unwrap().to_string(),
-            name: repo_config
-                .path
-                .file_name()
-                .unwrap()
-                .to_str()
-                .unwrap()
-                .to_string(),
-            worktrees: get_worktrees_for_repo(&repo_config.path),
+        .map(|repo_config| {
+            Ok(RepositoryDto {
+                path: repo_config
+                    .path
+                    .to_str()
+                    .ok_or_else(|| "Invalid path".to_string())?
+                    .to_string(),
+                name: repo_config
+                    .path
+                    .file_name()
+                    .ok_or_else(|| "Invalid file name".to_string())?
+                    .to_str()
+                    .ok_or_else(|| "Invalid file name string".to_string())?
+                    .to_string(),
+                worktrees: get_worktrees_for_repo(&repo_config.path)?,
+            })
         })
         .collect()
 }
 
 #[tauri::command]
-fn add_worktree(repo_path: String, worktree_name: String) {
-    let repo = Repository::open(repo_path).unwrap();
+fn add_worktree(repo_path: String, worktree_name: String) -> Result<(), String> {
+    let repo = Repository::open(repo_path).map_err(|e| e.to_string())?;
 
-    // repo.branch(
-    //     &worktree_name,
-    //     &repo.head().unwrap().peel_to_commit().unwrap(),
-    //     false,
-    // )
-    // .unwrap();
-
-    let repo_parent = repo.workdir().unwrap().parent().unwrap();
+    let repo_parent = repo
+        .workdir()
+        .ok_or_else(|| "No workdir".to_string())?
+        .parent()
+        .ok_or_else(|| "No parent dir".to_string())?;
     let repo_name = repo
         .workdir()
-        .unwrap()
+        .ok_or_else(|| "No workdir".to_string())?
         .file_name()
-        .unwrap()
+        .ok_or_else(|| "No file name".to_string())?
         .to_str()
-        .unwrap();
+        .ok_or_else(|| "Invalid string".to_string())?;
     let worktree_path = repo_parent
         .join(format!("{}.worktrees", repo_name))
         .join(&worktree_name);
-    repo.worktree(&worktree_name, &worktree_path, None).unwrap();
+    repo.worktree(&worktree_name, &worktree_path, None)
+        .map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 #[tauri::command]
-fn delete_worktree(repo_path: String, worktree_name: String) {
-    let repo = Repository::open(repo_path).unwrap();
-    let worktree = repo.find_worktree(&worktree_name).unwrap();
+fn delete_worktree(repo_path: String, worktree_name: String) -> Result<(), String> {
+    let repo = Repository::open(repo_path).map_err(|e| e.to_string())?;
+    let worktree = repo
+        .find_worktree(&worktree_name)
+        .map_err(|e| e.to_string())?;
 
     // Remove the worktree on disk
-    fs::remove_dir_all(worktree.path()).unwrap();
+    fs::remove_dir_all(worktree.path()).map_err(|e| e.to_string())?;
 
     // Prune the worktree from the repository
     repo.find_worktree(&worktree_name)
-        .unwrap()
+        .map_err(|e| e.to_string())?
         .prune(None)
-        .unwrap();
+        .map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 #[tauri::command]
-fn open_in_vscode<R: Runtime>(app: AppHandle<R>, path: String) {
+fn open_in_vscode<R: Runtime>(app: AppHandle<R>, path: String) -> Result<(), String> {
     app.opener()
         .open_path(path, Some("/Applications/Visual Studio Code.app"))
-        .unwrap();
+        .map_err(|e| e.to_string())?;
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
