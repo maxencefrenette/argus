@@ -1,7 +1,7 @@
 mod config;
 
 use config::Config;
-use git2::{Repository, WorktreePruneOptions};
+use git2::Repository;
 use std::fs;
 use std::path::Path;
 use tauri::{AppHandle, Runtime};
