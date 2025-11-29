@@ -1,7 +1,16 @@
-# Tauri + React + Typescript
+# Argus
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Desktop helper for managing git worktrees.
 
-## Recommended IDE Setup
+## Configuration
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+The app reads `~/.config/argus/config.toml` at startup. `editor` is required. Example:
+
+```
+editor = "code" # command used to open a repo/worktree
+
+[[repositories]]
+path = "/path/to/repo"
+```
+
+`editor` can be any CLI command that accepts the target path as its first argument (e.g. `code`, `cursor`, `antigravity`).

@@ -4,6 +4,7 @@ use toml;
 
 #[derive(serde::Deserialize)]
 pub struct Config {
+    pub editor: String,
     pub repositories: Vec<RepoConfig>,
 }
 

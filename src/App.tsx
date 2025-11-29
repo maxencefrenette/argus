@@ -81,10 +81,10 @@ function App() {
     }
   }
 
-  async function openInVsCode(path: string) {
+  async function openInEditor(path: string) {
       setGlobalError(null);
       try {
-          await invoke("open_in_vscode", { path });
+          await invoke("open_in_editor", { path });
       } catch (e) {
           setGlobalError(String(e));
       }
@@ -106,7 +106,7 @@ function App() {
                   variant="ghost"
                   size="icon"
                   className="rounded-full"
-                  onClick={() => openInVsCode(repo.path)}
+                  onClick={() => openInEditor(repo.path)}
                 >
                   <FolderCodeIcon />
                 </Button>
@@ -119,13 +119,13 @@ function App() {
                 </ItemContent>
                 <ItemActions>
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full"
-                    onClick={() => openInVsCode(wt.path)}
-                  >
-                    <FolderCodeIcon />
-                  </Button>
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full"
+                  onClick={() => openInEditor(wt.path)}
+                >
+                  <FolderCodeIcon />
+                </Button>
                   <Button
                     variant="destructive"
                     size="icon"

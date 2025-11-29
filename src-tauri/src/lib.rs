@@ -4,8 +4,7 @@ use config::Config;
 use git2::Repository;
 use std::fs;
 use std::path::Path;
-use tauri::{AppHandle, Runtime};
-use tauri_plugin_opener::OpenerExt;
+use std::process::Command;
 
 #[derive(serde::Serialize)]
 struct RepositoryDto {
@@ -112,10 +111,20 @@ fn delete_worktree(repo_path: String, worktree_name: String) -> Result<(), Strin
 }
 
 #[tauri::command]
-fn open_in_vscode<R: Runtime>(app: AppHandle<R>, path: String) -> Result<(), String> {
-    app.opener()
-        .open_path(path, Some("/Applications/Visual Studio Code.app"))
-        .map_err(|e| e.to_string())?;
+fn open_in_editor(path: String) -> Result<(), String> {
+    let editor = Config::load().editor;
+
+    let status = Command::new(&editor)
+        .arg(&path)
+        .status()
+        .map_err(|e| format!("Failed to open {path} with '{editor}': {e}"))?;
+
+    if !status.success() {
+        return Err(format!(
+            "Editor command '{editor}' exited with status {:?}",
+            status.code()
+        ));
+    }
     Ok(())
 }
 
@@ -123,12 +132,11 @@ fn open_in_vscode<R: Runtime>(app: AppHandle<R>, path: String) -> Result<(), Str
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_repos,
             add_worktree,
             delete_worktree,
-            open_in_vscode
+            open_in_editor
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
